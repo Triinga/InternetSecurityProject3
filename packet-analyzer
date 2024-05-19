@@ -14,4 +14,3 @@ def analyze_packet(packet):
         print(f"{Fore.YELLOW}Protocol: {proto}   Size: {size} bytes")
         print(f"{Fore.GREEN}Ether Type: {ether_type}   Frame Number: {frame_number}   Frame Length: {frame_len} bytes")
         print("-" * 50)
-
