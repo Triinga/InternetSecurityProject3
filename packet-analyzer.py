@@ -1,6 +1,17 @@
 from scapy.all import IP, Ether
 import psutil
 from colorama import init, Fore, Style
+from scapy.sendrecv import sniff
+from scapy.utils import wrpcap
+import socket
+import ipaddress
+import re
+
+# Initialize colorama
+init(autoreset=True)
+
+# Initialize frame_number
+frame_number = 0
 
 def analyze_packet(packet):
     global frame_number
@@ -52,7 +63,6 @@ def traffic_analyzer(interface, packet_count):
     print(f"{Fore.WHITE}Unique Protocols: {Fore.GREEN}{len(unique_protocols)}")
     print(f"{Fore.WHITE}Total Size: {Fore.GREEN}{total_size} bytes")
 
-
     save_packets = input(f"\n{Fore.YELLOW}Do you want to save the captured packets? (yes/no): ").lower()
     if save_packets == 'yes':
         output_file = input(f"{Fore.YELLOW}Enter the output file name for the captured packets (without extension): ")
@@ -60,16 +70,68 @@ def traffic_analyzer(interface, packet_count):
         wrpcap(output_file, packets)
         print(f"\n{Fore.CYAN}Captured packets saved to {output_file}")
 
+def port_scanner():
+    port_range_pattern = re.compile("([0-9]+)-([0-9]+)")
+    port_min = 0
+    port_max = 65535
 
-if __name__ == "__main__":
-    selected_interface = select_network_interface()
+    print("===========================Port Scanner==============================")
 
+    open_ports = []
     while True:
+        ip_add_entered = input("\nPlease enter the IP address that you want to scan: ")
         try:
-            packet_count = int(input(f"{Fore.YELLOW}Enter the number of packets to capture: "))
+            ip_address_obj = ipaddress.ip_address(ip_add_entered)
+            print("You entered a valid IP address.")
             break
         except ValueError:
-            print(f"{Fore.RED}Invalid input. Please enter a valid number.\n")
+            print("You entered an invalid IP address")
 
-    print(f"{Fore.BLUE}Analyzing traffic on {selected_interface}...")
-    traffic_analyzer(selected_interface, packet_count)
+    while True:
+        print("Please enter the range of ports you want to scan in format: <int>-<int> (ex: 60-120)")
+        port_range = input("Enter port range: ")
+        port_range_valid = port_range_pattern.search(port_range.replace(" ", ""))
+        if port_range_valid:
+            port_min = int(port_range_valid.group(1))
+            port_max = int(port_range_valid.group(2))
+            break
+
+    for port in range(port_min, port_max + 1):
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.settimeout(0.5)
+                s.connect((ip_add_entered, port))
+                open_ports.append(port)
+        except:
+            pass
+
+    for port in open_ports:
+        print(f"Port {port} is open on {ip_add_entered}.")
+
+def main():
+    print(f"{Fore.BLUE}Welcome to the Network Utility Tool")
+    print(f"1. Analyze Network Traffic")
+    print(f"2. Scan Ports")
+
+    while True:
+        choice = input(f"{Fore.YELLOW}Enter your choice (1 or 2): ")
+        if choice in ['1', '2']:
+            break
+        else:
+            print(f"{Fore.RED}Invalid choice. Please enter 1 or 2.\n")
+
+    if choice == '1':
+        selected_interface = select_network_interface()
+        while True:
+            try:
+                packet_count = int(input(f"{Fore.YELLOW}Enter the number of packets to capture: "))
+                break
+            except ValueError:
+                print(f"{Fore.RED}Invalid input. Please enter a valid number.\n")
+        print(f"{Fore.BLUE}Analyzing traffic on {selected_interface}...")
+        traffic_analyzer(selected_interface, packet_count)
+    else:
+        port_scanner()
+
+if __name__ == "__main__":
+    main()
