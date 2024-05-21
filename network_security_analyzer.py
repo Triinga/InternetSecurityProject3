@@ -12,7 +12,7 @@ from scapy.layers.l2 import Ether
 init(autoreset=True)
 
 # Constants
-KNOWN_MALICIOUS_IPS = ['192.168.1.100', '203.0.113.1']
+KNOWN_MALICIOUS_IPS = ['185.192.100.93', '45.117.141.53','201.230.222.111']
 UNUSUAL_PORTS = [8080, 8443, 2222, 3389, 5900, 5060, 6666, 17185]
 HIGH_FREQ_THRESHOLD = 100
 BEACONING_THRESHOLD = 50
@@ -39,7 +39,17 @@ class TrafficAnalyzer:
         self.packet_counts = {}
         self.connection_tracker = {}
         self.suspicious_packets = []
-
+    def analyze_packet(self, packet):
+        self.frame_number += 1
+        if IP in packet:
+            src_ip = packet[IP].src
+            dst_ip = packet[IP].dst
+            self.detect_suspicious_activity(packet, src_ip, dst_ip)
+            print_packet_info(packet, self.frame_number)
+        else:
+            print(f"{Fore.MAGENTA}Non-IP Packet Captured:")
+            print(f"{Fore.MAGENTA}Frame Number: {self.frame_number}   Frame Length: {len(packet)} bytes")
+            print("-" * 50)
     def detect_suspicious_activity(self, packet, src_ip, dst_ip):
         proto = packet[IP].proto
         size = packet[IP].len
@@ -127,55 +137,8 @@ def select_network_interface():
         print(f"{Fore.RED}Invalid interface name. Please try again.\n")
 
 
-def port_scanner():
-    port_range_pattern = re.compile("([0-9]+)-([0-9]+)")
-    port_min = 0
-    port_max = 65535
 
-    print("===========================Port Scanner==============================")
 
-    open_ports = []
-    while True:
-        ip_add_entered = input("\nPlease enter the IP address that you want to scan: ")
-        try:
-            ip_address_obj = ipaddress.ip_address(ip_add_entered)
-            print("You entered a valid IP address.")
-            break
-        except ValueError:
-            print("You entered an invalid IP address")
-
-    while True:
-        print("Please enter the range of ports you want to scan in format: <int>-<int> (ex: 60-120)")
-        port_range = input("Enter port range: ")
-        port_range_valid = port_range_pattern.search(port_range.replace(" ", ""))
-        if port_range_valid:
-            port_min = int(port_range_valid.group(1))
-            port_max = int(port_range_valid.group(2))
-            break
-
-    for port in range(port_min, port_max + 1):
-        try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.settimeout(0.5)
-                s.connect((ip_add_entered, port))
-                open_ports.append(port)
-        except:
-            pass
-
-    for port in open_ports:
-        print(f"Port {port} is open on {ip_add_entered}.")
-
-def analyze_packet(self, packet):
-        self.frame_number += 1
-        if IP in packet:
-            src_ip = packet[IP].src
-            dst_ip = packet[IP].dst
-            self.detect_suspicious_activity(packet, src_ip, dst_ip)
-            print_packet_info(packet, self.frame_number)
-        else:
-            print(f"{Fore.MAGENTA}Non-IP Packet Captured:")
-            print(f"{Fore.MAGENTA}Frame Number: {self.frame_number}   Frame Length: {len(packet)} bytes")
-            print("-" * 50) 
 def main():
     print(f"{Fore.BLUE}Welcome to the Network Utility Tool")
     print(f"1. Analyze Network Traffic")
@@ -202,9 +165,9 @@ def main():
                 print(f"{Fore.RED}Invalid input. Please enter a valid number.\n")
         print(f"{Fore.BLUE}Analyzing traffic on {selected_interface}...")
         analyzer = TrafficAnalyzer()
-        # traffic_analyzer(selected_interface, packet_count)
+        analyzer.run_analysis(selected_interface, packet_count)
     else:
-        port_scanner()
+        # port_scanner()
 
 if __name__ == "__main__":
     main()
