@@ -165,6 +165,17 @@ def port_scanner():
     for port in open_ports:
         print(f"Port {port} is open on {ip_add_entered}.")
 
+def analyze_packet(self, packet):
+        self.frame_number += 1
+        if IP in packet:
+            src_ip = packet[IP].src
+            dst_ip = packet[IP].dst
+            self.detect_suspicious_activity(packet, src_ip, dst_ip)
+            print_packet_info(packet, self.frame_number)
+        else:
+            print(f"{Fore.MAGENTA}Non-IP Packet Captured:")
+            print(f"{Fore.MAGENTA}Frame Number: {self.frame_number}   Frame Length: {len(packet)} bytes")
+            print("-" * 50) 
 def main():
     print(f"{Fore.BLUE}Welcome to the Network Utility Tool")
     print(f"1. Analyze Network Traffic")
