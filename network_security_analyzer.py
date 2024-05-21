@@ -102,6 +102,18 @@ class TrafficAnalyzer:
         print(f"{Fore.RED}High frequency traffic from single source IP: {len([src_ip for src_ip, count in self.packet_counts.items() if count > HIGH_FREQ_THRESHOLD])}")
         print(f"{Fore.RED}Frequent connections to the same host: {len([conn_key for conn_key, count in self.connection_tracker.items() if count > BEACONING_THRESHOLD])}")
 
+    def run_analysis(self, interface, packet_count):
+        self.suspicious_packets = []
+        packets = sniff(iface=interface, prn=self.analyze_packet, count=packet_count)
+        self.summarize_traffic(packets)
+
+        save_packets = input(f"\n{Fore.YELLOW}Do you want to save the captured packets? (yes/no): ").lower()
+        if save_packets == 'yes':
+            output_file = input(f"{Fore.YELLOW}Enter the output file name for the captured packets (without extension): ")
+            output_file += ".pcap"
+            wrpcap(output_file, packets)
+            print(f"\n{Fore.CYAN}Captured packets saved to {output_file}")
+
 # Helper functions
 def select_network_interface():
     interfaces = psutil.net_if_addrs()
