@@ -6,6 +6,7 @@ from scapy.utils import wrpcap
 from scapy.layers.inet import IP, TCP, UDP
 from scapy.layers.l2 import Ether
 
+
 # Initialize colorama
 init(autoreset=True)
 
@@ -112,15 +113,18 @@ class TrafficAnalyzer:
 
     def run_analysis(self, interface, packet_count):
         self.reset_analysis()
-        packets = sniff(iface=interface, prn=self.analyze_packet, count=packet_count)
-        self.summarize_traffic(packets)
+        try:
+            packets = sniff(iface=interface, prn=self.analyze_packet, count=packet_count)
+            self.summarize_traffic(packets)
 
-        save_packets = messagebox.askyesno("Save Packets", "Do you want to save the captured packets?")
-        if save_packets:
-            output_file = filedialog.asksaveasfilename(defaultextension=".pcap", filetypes=[("PCAP files", "*.pcap")])
-            if output_file:
-                wrpcap(output_file, packets)
-                messagebox.showinfo("Saved", f"Captured packets saved to {output_file}")
+            save_packets = messagebox.askyesno("Save Packets", "Do you want to save the captured packets?")
+            if save_packets:
+                output_file = filedialog.asksaveasfilename(defaultextension=".pcap", filetypes=[("PCAP files", "*.pcap")])
+                if output_file:
+                    wrpcap(output_file, packets)
+                    messagebox.showinfo("Saved", f"Captured packets saved to {output_file}")
+        except OSError:
+            self.log("Cannot analyze traffic here. Please check the interface and try again.")
 
     def reset_analysis(self):
         self.frame_number = 0

@@ -89,6 +89,11 @@ class NetworkAnalyzerApp:
         self.analyzer = TrafficAnalyzer(self.log_text)
         self.analyzer.run_analysis(interface, packet_count)
 
+    def handle_analysis_exception(self, e):
+        print("Cannot analyze traffic here. Please check the interface and try again.")
+        messagebox.showerror("Analysis Error", "Cannot analyze traffic here. Please check the interface and try again.")
+
+
     def start_port_scan(self):
         ip = self.ip_var.get()
         port_range = self.port_range_var.get()
